@@ -1,6 +1,0 @@
-@supabase_poc_HostAddress = http://localhost:5113
-
-GET {{supabase_poc_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
