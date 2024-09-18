@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(options =>
@@ -14,7 +12,6 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -23,32 +20,47 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapGet("/login", async (HttpContext context) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    string html = @"
+    <!DOCTYPE html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>Login</title>
+        <link rel='stylesheet' href='/css/styles.css'>
+    </head>
+    <body>
+        <h2>Login</h2>
+        <form method='post' action='/login'>
+            <label for='email'>Email:</label>
+            <input type='email' id='email' name='email' required>
+            <button type='submit'>Login</button>
+        </form>
+    </body>
+    </html>";
 
-app.MapGet("/weatherforecast", () =>
+    context.Response.ContentType = "text/html";
+    await context.Response.WriteAsync(html);
+});
+
+app.MapPost("/login", async (HttpContext context) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    var form = await context.Request.ReadFormAsync();
+    string email = form["email"];
+
+    if (!string.IsNullOrEmpty(email))
+    {
+        await context.Response.WriteAsync($"Welcome, {email}!");
+    }
+    else
+    {
+        await context.Response.WriteAsync("Invalid email.");
+    }
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
 public class User
 {
     public int Id { get; set; }
